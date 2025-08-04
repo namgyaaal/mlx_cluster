@@ -37,8 +37,8 @@ namespace mlx::core {
         // Initialize outputs
         assert(outputs.size() == 2);
         // Allocate memory for outputs if not already allocated
-        outputs[0].set_data(allocator::malloc_or_wait(numel*(walk_length_+1)*sizeof(int64_t)));
-        outputs[1].set_data(allocator::malloc_or_wait(numel*walk_length_*sizeof(int64_t)));
+        outputs[0].set_data(allocator::malloc(numel*(walk_length_+1)*sizeof(int64_t)));
+        outputs[1].set_data(allocator::malloc(numel*walk_length_*sizeof(int64_t)));
         auto& n_out = outputs[0];
         auto& e_out = outputs[1];
 
@@ -121,8 +121,8 @@ namespace mlx::core {
 //         int numel = start.size();
         
 //         assert(outputs.size() == 2);
-//         outputs[0].set_data(allocator::malloc_or_wait(numel * (walk_length_ + 1) * sizeof(int64_t)));
-//         outputs[1].set_data(allocator::malloc_or_wait(numel * walk_length_ * sizeof(int64_t)));
+//         outputs[0].set_data(allocator::malloc(numel * (walk_length_ + 1) * sizeof(int64_t)));
+//         outputs[1].set_data(allocator::malloc(numel * walk_length_ * sizeof(int64_t)));
 //         std::cout<<"after setting data"<<std::endl;
 //         auto& s = stream();
 //         auto& d = metal::device(s.device);

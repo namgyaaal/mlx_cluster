@@ -39,8 +39,8 @@ namespace mlx::core{
                 const std::vector<int>& axes) override;
 
             /** Print the primitive. */
-            void print(std::ostream& os) override {
-                os << "biased random walk implementation";
+            virtual const char* name() const override {
+                return "biased random walk implementation";
             }
 
             /** Equivalence check **/

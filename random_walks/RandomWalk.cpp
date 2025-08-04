@@ -14,6 +14,7 @@
 #endif
 #include "random_walks/RandomWalk.h"
 
+
 namespace mlx::core {
     void RandomWalk::eval_cpu(const std::vector<array>& inputs, std::vector<array>& outputs) {
     auto& rowptr = inputs[0];
@@ -25,8 +26,8 @@ namespace mlx::core {
     // Initialize outputs
     assert(outputs.size() == 2);
     // Allocate memory for outputs if not already allocated
-    outputs[0].set_data(allocator::malloc_or_wait(numel*(walk_length_+1)*sizeof(int64_t)));
-    outputs[1].set_data(allocator::malloc_or_wait(numel*walk_length_*sizeof(int64_t)));
+    outputs[0].set_data(allocator::malloc(numel*(walk_length_+1)*sizeof(int64_t)));
+    outputs[1].set_data(allocator::malloc(numel*walk_length_*sizeof(int64_t)));
     auto& n_out = outputs[0];
     auto& e_out = outputs[1];
 
@@ -81,17 +82,17 @@ void RandomWalk::eval_gpu(
         int numel = start.size();
         
         assert(outputs.size() == 2);
-        outputs[0].set_data(allocator::malloc_or_wait(numel * (walk_length_ + 1) * sizeof(int64_t)));
-        outputs[1].set_data(allocator::malloc_or_wait(numel * walk_length_ * sizeof(int64_t)));
+        outputs[0].set_data(allocator::malloc(numel * (walk_length_ + 1) * sizeof(int64_t)));
+        outputs[1].set_data(allocator::malloc(numel * walk_length_ * sizeof(int64_t)));
         std::cout<<"after setting data"<<std::endl;
         auto& s = stream();
         auto& d = metal::device(s.device);
 
-        d.register_library("mlx_cluster");
-        auto kernel = d.get_kernel("random_walk", "mlx_cluster");
+        auto lib = d.get_library("mlx_cluster");
+        auto kernel = d.get_kernel("random_walk", lib);
 
         auto& compute_encoder = d.get_command_encoder(s.index);
-        compute_encoder->setComputePipelineState(kernel);
+        compute_encoder.set_compute_pipeline_state(kernel);
 
         compute_encoder.set_input_array(rowptr, 0);
         compute_encoder.set_input_array(col, 1);
@@ -99,12 +100,12 @@ void RandomWalk::eval_gpu(
         compute_encoder.set_input_array(rand, 3);
         compute_encoder.set_output_array(outputs[0], 4);
         compute_encoder.set_output_array(outputs[1], 5);
-        compute_encoder->setBytes(&walk_length_, sizeof(int32), 6);
+        compute_encoder.set_bytes(&walk_length_, sizeof(int32), 6);
 
         MTL::Size grid_size = MTL::Size(numel, 1, 1);
         MTL::Size thread_group_size = MTL::Size(kernel->maxTotalThreadsPerThreadgroup(), 1, 1);
 
-        compute_encoder.dispatchThreads(grid_size, thread_group_size);
+        compute_encoder.dispatch_threads(grid_size, thread_group_size);
     }
 #endif
 
